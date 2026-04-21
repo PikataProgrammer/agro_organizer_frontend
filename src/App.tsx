@@ -1,0 +1,27 @@
+import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from "./pages/Dashboard.tsx";
+import FieldDetails from "./pages/FieldDetails.tsx";
+import MainLayout from "./components/MainLayout.tsx";
+import Finances from "./pages/Finances.tsx";
+import Login from "./pages/Login.tsx";
+
+function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+
+                <Route element={<MainLayout />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/field/:id" element={<FieldDetails />} />
+                    <Route path="/finances" element={<Finances />} />
+                </Route>
+
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+        </BrowserRouter>
+    )
+}
+
+export default App

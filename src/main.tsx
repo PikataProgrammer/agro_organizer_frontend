@@ -1,0 +1,19 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { SWRConfig } from 'swr';
+import { api } from './api/axiosClient';
+
+import 'primereact/resources/themes/lara-light-green/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+
+const fetcher = (url: string) => api.get(url).then((res) => res.data);
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+        <SWRConfig value={{ fetcher }}>
+            <App />
+        </SWRConfig>
+    </React.StrictMode>
+);
