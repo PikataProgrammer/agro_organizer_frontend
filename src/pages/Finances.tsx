@@ -16,13 +16,11 @@ import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
 
 const Finances = () => {
-    // Взимаме и функциите mutate, за да презареждаме таблиците веднага след запис
     const { data: sales, error: errorSales, isLoading: loadingSales, mutate: mutateSales } = useSWR<Sale[]>('/api/sale');
     const { data: expenses, error: errorExpenses, isLoading: loadingExpenses, mutate: mutateExpenses } = useSWR<Expense[]>('/api/expense');
 
     const toast = useRef<Toast>(null);
 
-    // State за модалите
     const [showSaleDialog, setShowSaleDialog] = useState(false);
     const [showExpenseDialog, setShowExpenseDialog] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -139,7 +137,7 @@ const Finances = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <Button label="Нов Приход" icon="pi pi-plus" className="p-button-success" onClick={() => setShowSaleDialog(true)} />
                     <Button label="Нов Разход" icon="pi pi-minus" className="p-button-danger" onClick={() => setShowExpenseDialog(true)} />
-                    <Button label="Справки разходи" className="p-button-secondary p-button-outlined" onClick={() => downloadExcel('/api/reports/expense/excel', 'ExpensesReport.xlsx')} />
+                    <Button label="Справка разходи" className="p-button-secondary p-button-outlined" onClick={() => downloadExcel('/api/reports/expense/excel', 'ExpensesReport.xlsx')} />
                 </div>
             </div>
 

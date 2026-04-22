@@ -6,6 +6,7 @@ import MainLayout from "./components/MainLayout.tsx";
 import Finances from "./pages/Finances.tsx";
 import Login from "./pages/Login.tsx";
 import Drivers from "./pages/Drivers.tsx";
+import Vehicles from "./pages/Vehicles.tsx";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                         <Route path="/field/:id" element={<FieldDetails />} />
                         <Route path="/finances" element={<Finances />} />
                         <Route path="/drivers" element={<Drivers />} />
+                        <Route path="/vehicles" element={<Vehicles />} />
                     </Route>
 
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

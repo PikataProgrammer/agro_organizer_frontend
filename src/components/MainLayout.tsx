@@ -24,6 +24,12 @@ const MainLayout = () => {
             icon: 'pi pi-fw pi-users',
             command: () => navigate('/drivers'),
             className: location.pathname.includes('/drivers') ? 'p-menuitem-active' : ''
+        },
+        {
+            label: 'Машинен Парк',
+            icon: 'pi pi-fw pi-car',
+            command: () => navigate('/vehicles'),
+            className: location.pathname.includes('/vehicles') ? 'p-menuitem-active' : ''
         }
     ];
 

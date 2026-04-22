@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import  { useState } from 'react';
 import useSWR from 'swr';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/axiosClient';
@@ -23,39 +23,74 @@ const Dashboard = () => {
     const [showDialog, setShowDialog] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // ❗ ВРЪЩАМЕ декарите и локацията в стейта
     const [newField, setNewField] = useState({
         fieldName: '',
-        area: null as number | null,
-        location: ''
+        fieldSize: null as number | null,
+        fieldLocation: ''
     });
 
+    const [editingField, setEditingField] = useState<Field | null>(null);
+
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар' };
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар', 8: 'Люцерна', 9: 'Изкуствени ливади' };
         return crops[crop] || 'Неизвестно';
     };
 
+    const openEditDialog = (field: Field) => {
+        setEditingField(field);
+        setNewField({
+            fieldName: field.fieldName,
+            fieldSize: field.fieldSize ?? null,
+            fieldLocation: field.fieldLocation ?? ''
+        });
+        setShowDialog(true);
+    };
+    const downloadExcel = async (url: string, filename: string) => {
+        try {
+            const response = await api.get(url, { responseType: 'blob' });
+            const blob = new Blob([response.data as BlobPart], { type: response.headers['content-type'] as string });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('success', 'Успех', 'Справката е изтеглена успешно!');
+        } catch (err) {
+            console.error(err);
+            showToast('error', 'Грешка', 'Проблем при свалянето на справката.');
+        }
+    };
+
     const handleSaveField = async () => {
-        // Задължаваме потребителя да въведе поне име и декари
-        if (!newField.fieldName.trim() || !newField.area) {
+        if (!newField.fieldName.trim() || !newField.fieldSize) {
             showToast('warn', 'Внимание', 'Моля, въведете име и размер (декари) на нивата!');
             return;
         }
         setSaving(true);
         try {
-            const userId = localStorage.getItem('userId');
-            // ❗ Изпращаме новите полета към бекенда
-            await api.post('/api/field', {
-                fieldName: newField.fieldName,
-                area: newField.area,
-                location: newField.location,
-                userId: Number(userId)
-            });
-            showToast('success', 'Успех', 'Нивата е добавена!');
+            const userId = Number(localStorage.getItem('userId'));
+
+            if (editingField) {
+                await api.put(`/api/field/${editingField.fieldId}`, {
+                    ...newField,
+                    fieldId: editingField.fieldId,
+                    userId: userId
+                });
+                showToast('success', 'Успех', 'Нивата е редактирана!');
+            } else {
+                await api.post('/api/field', {
+                    ...newField,
+                    userId: userId
+                });
+                showToast('success', 'Успех', 'Нивата е добавена!');
+            }
+
             setShowDialog(false);
-            // Изчистваме формата
-            setNewField({ fieldName: '', area: null, location: '' });
-            mutate();
+            setEditingField(null);
+            setNewField({ fieldName: '', fieldSize: null, fieldLocation: '' });
+            await mutate();
         } catch (err) {
             console.error(err);
             showToast('error', 'Грешка', 'Неуспешен запис.');
@@ -72,9 +107,8 @@ const Dashboard = () => {
                 try {
                     await api.delete(`/api/field/${id}`);
                     showToast('success', 'Успех', 'Нивата беше изтрита.');
-                    mutate();
+                    await mutate();
                 } catch (err) {
-                    console.error(err);
                     showToast('error', 'Грешка', 'Неуспешно изтриване.');
                 }
             }
@@ -82,10 +116,9 @@ const Dashboard = () => {
     };
 
     if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}><ProgressSpinner /></div>;
-    if (error) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка при зареждане на данните.</h2>;
+    if (error) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка при зареждане.</h2>;
 
     const totalFields = fields?.length || 0;
-
     const totalArea = fields?.reduce((sum, f) => sum + (f.fieldSize || 0), 0) || 0;
 
     const currentCropsCount: Record<string, number> = {};
@@ -111,9 +144,7 @@ const Dashboard = () => {
         }]
     };
 
-    const chartOptions = { plugins: { legend: { labels: { usePointStyle: true } } } };
-
-    const currentCropTemplate = (rowData: any) => {
+    const currentCropTemplate = (rowData: Field) => {
         if (!rowData.seasons || rowData.seasons.length === 0) return <span style={{ color: '#999' }}>Няма сезони</span>;
         const latestSeason = rowData.seasons[rowData.seasons.length - 1];
         return <strong>{getCropName(latestSeason.cropType)} ({latestSeason.year})</strong>;
@@ -122,19 +153,9 @@ const Dashboard = () => {
     const actionBodyTemplate = (rowData: Field) => {
         return (
             <div style={{ display: 'flex', gap: '5px' }}>
-                <Button
-                    label="Отвори"
-                    icon="pi pi-search"
-                    className="p-button-text p-button-sm p-button-info"
-                    onClick={() => navigate(`/field/${rowData.fieldId}`)}
-                />
-
-                <Button
-                    icon="pi pi-trash"
-                    tooltip="Изтрий нивата"
-                    className="p-button-text p-button-sm p-button-danger"
-                    onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldName)}
-                />
+                <Button label="Отвори" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/field/${rowData.fieldId}`)} />
+                <Button icon="pi pi-pencil" tooltip="Редактирай" className="p-button-text p-button-sm p-button-warning" onClick={() => openEditDialog(rowData)} />
+                <Button icon="pi pi-trash" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldName)} />
             </div>
         );
     };
@@ -143,7 +164,21 @@ const Dashboard = () => {
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1 style={{ margin: 0, color: '#333' }}>Моето Стопанство</h1>
-                <Button label="Нова Нива" icon="pi pi-plus" className="p-button-success" onClick={() => setShowDialog(true)} />
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button
+                        label="Справка Ниви"
+                        icon="pi pi-file-excel"
+                        className="p-button-secondary p-button-outlined"
+                        onClick={() => downloadExcel('/api/reports/field/excel', 'FieldsReport.xlsx')}
+                    />
+                    <Button
+                        label="Нова Нива"
+                        icon="pi pi-plus"
+                        className="p-button-success"
+                        onClick={() => { setEditingField(null); setNewField({fieldName:'', fieldSize: null, fieldLocation: ''}); setShowDialog(true); }}
+                    />
+                </div>
             </div>
 
             <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -151,7 +186,6 @@ const Dashboard = () => {
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Общо Ниви</p>
                     <h2 style={{ margin: '10px 0 0 0', color: '#3B82F6', fontSize: '2.5rem' }}>{totalFields}</h2>
                 </Card>
-                {/* ❗ НОВА КАРТА ЗА ОБЩО ДЕКАРИ */}
                 <Card style={{ borderLeft: '5px solid #8B5CF6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Общо Площ</p>
                     <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>{totalArea} <span style={{fontSize: '1rem', color: '#888'}}>дка</span></h2>
@@ -163,29 +197,24 @@ const Dashboard = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
-                <Card title="Разпределение на културите" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    {totalFields > 0 ? (
-                        <div style={{ width: '80%', display: 'flex', justifyContent: 'center' }}>
-                            <Chart type="pie" data={chartData} options={chartOptions} style={{ width: '100%' }} />
-                        </div>
-                    ) : (
-                        <p style={{ color: '#888' }}>Няма данни за визуализация.</p>
-                    )}
+                <Card title="Разпределение на културите" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                    <div style={{ width: '80%', margin: '0 auto' }}>
+                        <Chart type="pie" data={chartData} />
+                    </div>
                 </Card>
 
                 <Card title="Списък с ниви" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                    <DataTable value={fields} emptyMessage="Нямате добавени ниви." stripedRows paginator rows={5}>
+                    <DataTable value={fields} stripedRows paginator rows={5}>
                         <Column field="fieldName" header="Име на нива" style={{ fontWeight: 'bold' }}></Column>
-                        {/* ❗ ДОБАВЕНИ КОЛОНИ В ТАБЛИЦАТА */}
-                        <Column field="area" header="Декари" body={(r) => r.area ? `${r.area} дка` : '-'}></Column>
-                        <Column field="location" header="Локация"></Column>
+                        <Column field="fieldSize" header="Декари" body={(r) => r.fieldSize ? `${r.fieldSize} дка` : '-'}></Column>
+                        <Column field="fieldLocation" header="Локация"></Column>
                         <Column header="Текуща култура" body={currentCropTemplate}></Column>
-                        <Column body={actionBodyTemplate} style={{ width: '150px' }}></Column>
+                        <Column body={actionBodyTemplate} style={{ width: '160px' }}></Column>
                     </DataTable>
                 </Card>
             </div>
 
-            <Dialog header="Добави Нова Нива" visible={showDialog} style={{ width: '450px' }} onHide={() => setShowDialog(false)} footer={
+            <Dialog header={editingField ? "Редактирай Нива" : "Добави Нова Нива"} visible={showDialog} style={{ width: '450px' }} onHide={() => { setShowDialog(false); setEditingField(null); }} footer={
                 <div>
                     <Button label="Отказ" icon="pi pi-times" onClick={() => setShowDialog(false)} className="p-button-text p-button-secondary" />
                     <Button label="Запази" icon="pi pi-check" onClick={handleSaveField} loading={saving} className="p-button-success" autoFocus />
@@ -197,15 +226,14 @@ const Dashboard = () => {
                         <InputText value={newField.fieldName} onChange={(e) => setNewField({...newField, fieldName: e.target.value})} placeholder="напр. Голямата нива" />
                     </div>
 
-
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
                         <div style={{ flex: 1 }}>
                             <label style={{ fontWeight: 'bold' }}>Площ (декари) *</label>
-                            <InputNumber value={newField.area} onValueChange={(e) => setNewField({...newField, area: e.value})} min={0} maxFractionDigits={2} placeholder="напр. 50" />
+                            <InputNumber value={newField.fieldSize} onValueChange={(e) => setNewField({...newField, fieldSize: e.value ?? null})} min={0} placeholder="напр. 50" />
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={{ fontWeight: 'bold' }}>Локация (землище)</label>
-                            <InputText value={newField.location} onChange={(e) => setNewField({...newField, location: e.target.value})} placeholder="напр. с. Труд" />
+                            <InputText value={newField.fieldLocation} onChange={(e) => setNewField({...newField, fieldLocation: e.target.value})} placeholder="напр. с. Труд" />
                         </div>
                     </div>
                 </div>

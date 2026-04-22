@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { api } from '../api/axiosClient';
-import { useApp } from '../context/AppContext'; // ❗ ИМПОРТИРАМЕ НАШИЯ ХУК
+import { useApp } from '../context/AppContext';
 
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
@@ -14,7 +14,8 @@ import { Calendar } from 'primereact/calendar';
 import { ProgressSpinner } from 'primereact/progressspinner';
 
 const Drivers = () => {
-    const { data: drivers, error, isLoading, mutate } = useSWR<any[]>('/api/driver');
+
+    const { data: drivers, error, isLoading, mutate } = useSWR<{ driverId: number; [key: string]: unknown }[]>('/api/driver');
 
     const { showToast, confirmAction } = useApp();
 
@@ -69,7 +70,7 @@ const Drivers = () => {
         );
     };
 
-    const actionBodyTemplate = (rowData: any) => {
+    const actionBodyTemplate = (rowData: { driverId: number }) => {
         return (
             <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-text" onClick={() => handleDeleteDriver(rowData.driverId)} tooltip="Изтрий" />
         );
@@ -111,7 +112,7 @@ const Drivers = () => {
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
                         <div style={{ flex: 1 }}>
                             <label style={{ fontWeight: 'bold' }}>Възраст *</label>
-                            <InputNumber value={newDriver.driverAge} onValueChange={(e) => setNewDriver({...newDriver, driverAge: e.value})} min={18} max={99} placeholder="Години" />
+                            <InputNumber value={newDriver.driverAge} onValueChange={(e) => setNewDriver({...newDriver, driverAge: e.value ?? null})} min={18} max={99} placeholder="Години" />
                         </div>
                         <div style={{ flex: 2 }}>
                             <label style={{ fontWeight: 'bold' }}>Телефон *</label>

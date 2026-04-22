@@ -1,9 +1,9 @@
 export enum CropTypes {
-    Wheat = 1, Rye = 2, Peas = 3, Phacelia = 4, Sunflower = 5, Corn = 6, None = 7
+    Wheat = 1, Rye = 2, Peas = 3, Phacelia = 4, Sunflower = 5, Corn = 6, None = 7, Lucerne = 8, Lawns = 9,
 }
 
 export enum FieldOperationTypes {
-    Plowing = 1, Sowing = 2, Fertilizing = 3, Spraying = 4, Harvesting = 5, Disking = 6, None = 7
+    Plowing = 1, Sowing = 2, Fertilizing = 3, Spraying = 4, Harvesting = 5, Disking = 6, None = 7,
 }
 
 export interface UserInfo {

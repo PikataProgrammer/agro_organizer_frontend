@@ -20,7 +20,8 @@ const FieldDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: field, error: fieldError, isLoading: loadingField, mutate } = useSWR<Field>(`/api/field/${id}`);
-    const { data: drivers, error: driversError, isLoading: loadingDrivers } = useSWR<any[]>('/api/driver');
+
+    const { data: drivers, error: driversError, isLoading: loadingDrivers } = useSWR<{ driverId: number; driverName: string }[]>('/api/driver');
 
     const isLoading = loadingField || loadingDrivers;
     const error = fieldError || driversError;
@@ -39,22 +40,26 @@ const FieldDetails = () => {
         driverId: null as number | null,
         notes: ''
     });
+
     useEffect(() => {
         if (field && field.seasons && field.seasons.length > 0) {
             if (selectedSeason) {
                 const updatedSeason = field.seasons.find(s => s.id === selectedSeason.id);
-                if (updatedSeason) {
+
+                if (updatedSeason && JSON.stringify(updatedSeason) !== JSON.stringify(selectedSeason)) {
                     setSelectedSeason(updatedSeason);
                 }
             } else {
                 setSelectedSeason(field.seasons[field.seasons.length - 1]);
             }
         }
+
     }, [field]);
+
     const formatDate = (value: string) => value ? new Date(value).toLocaleDateString('bg-BG') : '-';
 
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар (Празно)' };
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар (Празно)', 8: 'Люцерна', 9: 'Изкуствени ливади' };
         return crops[crop] || 'Неизвестно';
     };
 
@@ -66,7 +71,7 @@ const FieldDetails = () => {
     const cropOptions = [
         { label: 'Пшеница', value: 1 }, { label: 'Ръж', value: 2 }, { label: 'Грах', value: 3 },
         { label: 'Фацелия', value: 4 }, { label: 'Слънчоглед', value: 5 }, { label: 'Царевица', value: 6 },
-        { label: 'Угар (Празно)', value: 7 }
+        { label: 'Угар (Празно)', value: 7 }, { label: 'Люцерна', value: 8 }, { label: 'Изкуствени ливади', value: 9 }
     ];
 
     const operationOptions = [
@@ -118,10 +123,11 @@ const FieldDetails = () => {
             setSavingActivity(false);
         }
     };
-    const getDriverNameDisplay = (activity: any) => {
+
+    const getDriverNameDisplay = (activity: { driverName?: string; driverId?: number }) => {
         if (activity.driverName) return activity.driverName;
         if (activity.driverId && drivers) {
-            const foundDriver = drivers.find((d: any) => d.driverId == activity.driverId);
+            const foundDriver = drivers.find(d => d.driverId == activity.driverId);
             return foundDriver ? foundDriver.driverName : 'Неизвестен';
         }
         return '-';
@@ -129,8 +135,6 @@ const FieldDetails = () => {
 
     if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}><ProgressSpinner /></div>;
     if (error || !field) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка!</h2>;
-
-
 
     const latestActivity = selectedSeason?.activities && selectedSeason.activities.length > 0
         ? selectedSeason.activities[selectedSeason.activities.length - 1] : null;
@@ -144,8 +148,6 @@ const FieldDetails = () => {
             <Button label="Добави Обработка" icon="pi pi-plus" className="p-button-sm p-button-info" onClick={() => setShowActivityDialog(true)} disabled={!selectedSeason} />
         </div>
     );
-
-
 
     return (
         <div style={{ padding: '20px', backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
@@ -162,7 +164,7 @@ const FieldDetails = () => {
                         value={selectedSeason}
                         options={field.seasons}
                         onChange={(e) => setSelectedSeason(e.value)}
-                        optionLabel={(option) => `${option.year} - ${getCropName(option.cropType)}`}
+                        optionLabel={(option: FieldSeason) => `${option.year} - ${getCropName(option.cropType)}`}
                         placeholder="Избери сезон"
                         style={{ width: '250px' }}
                         emptyMessage="Няма сезони"
