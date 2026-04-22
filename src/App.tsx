@@ -7,6 +7,7 @@ import Finances from "./pages/Finances.tsx";
 import Login from "./pages/Login.tsx";
 import Drivers from "./pages/Drivers.tsx";
 import Vehicles from "./pages/Vehicles.tsx";
+import ChangePassword from "./pages/ChangePassword.tsx";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                         <Route path="/finances" element={<Finances />} />
                         <Route path="/drivers" element={<Drivers />} />
                         <Route path="/vehicles" element={<Vehicles />} />
+                        <Route path="/change-password" element={<ChangePassword />} />
                     </Route>
 
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

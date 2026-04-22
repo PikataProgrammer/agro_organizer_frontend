@@ -30,6 +30,12 @@ const MainLayout = () => {
             icon: 'pi pi-fw pi-car',
             command: () => navigate('/vehicles'),
             className: location.pathname.includes('/vehicles') ? 'p-menuitem-active' : ''
+        },
+        {
+            label: 'Смяна на парола',
+            icon: 'pi pi-fw pi-key',
+            command: () => navigate('/change-password'),
+            className: location.pathname.includes('/change-password') ? 'p-menuitem-active' : ''
         }
     ];
 
