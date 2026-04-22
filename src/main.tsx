@@ -7,13 +7,16 @@ import { api } from './api/axiosClient';
 import 'primereact/resources/themes/lara-light-green/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
+import {AppProvider} from "./context/AppContext.tsx";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <SWRConfig value={{ fetcher }}>
-            <App />
-        </SWRConfig>
+            <AppProvider>
+                <SWRConfig value={{ fetcher }}>
+                    <App />
+                    </SWRConfig>
+            </AppProvider>
     </React.StrictMode>
 );

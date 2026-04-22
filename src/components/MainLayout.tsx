@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Menu } from 'primereact/menu';
 import { Button } from 'primereact/button';
@@ -19,6 +18,12 @@ const MainLayout = () => {
             icon: 'pi pi-fw pi-wallet',
             command: () => navigate('/finances'),
             className: location.pathname.includes('/finances') ? 'p-menuitem-active' : ''
+        },
+        {
+            label: 'Моят Екип',
+            icon: 'pi pi-fw pi-users',
+            command: () => navigate('/drivers'),
+            className: location.pathname.includes('/drivers') ? 'p-menuitem-active' : ''
         }
     ];
 

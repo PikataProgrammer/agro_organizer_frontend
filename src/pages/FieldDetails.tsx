@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import { api } from '../api/axiosClient';
@@ -19,12 +19,15 @@ import { Toast } from 'primereact/toast';
 const FieldDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { data: field, error, isLoading, mutate } = useSWR<Field>(`/api/field/${id}`);
+    const { data: field, error: fieldError, isLoading: loadingField, mutate } = useSWR<Field>(`/api/field/${id}`);
+    const { data: drivers, error: driversError, isLoading: loadingDrivers } = useSWR<any[]>('/api/driver');
+
+    const isLoading = loadingField || loadingDrivers;
+    const error = fieldError || driversError;
 
     const toast = useRef<Toast>(null);
     const [selectedSeason, setSelectedSeason] = useState<FieldSeason | null>(null);
 
-    // State за Сезоните
     const [showSeasonDialog, setShowSeasonDialog] = useState(false);
     const [savingSeason, setSavingSeason] = useState(false);
     const [newSeason, setNewSeason] = useState({ year: new Date().getFullYear(), cropType: 1 });
@@ -36,9 +39,18 @@ const FieldDetails = () => {
         driverId: null as number | null,
         notes: ''
     });
-    const { data: drivers } = useSWR<any[]>('/api/driver');
-    console.log("СВАЛЕНИ ВОДАЧИ:", drivers);
-
+    useEffect(() => {
+        if (field && field.seasons && field.seasons.length > 0) {
+            if (selectedSeason) {
+                const updatedSeason = field.seasons.find(s => s.id === selectedSeason.id);
+                if (updatedSeason) {
+                    setSelectedSeason(updatedSeason);
+                }
+            } else {
+                setSelectedSeason(field.seasons[field.seasons.length - 1]);
+            }
+        }
+    }, [field]);
     const formatDate = (value: string) => value ? new Date(value).toLocaleDateString('bg-BG') : '-';
 
     const getCropName = (crop: CropTypes) => {
@@ -72,6 +84,7 @@ const FieldDetails = () => {
             await api.post('/api/fieldseason', { fieldId: Number(id), year: newSeason.year, cropType: newSeason.cropType });
             toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Новият сезон е създаден!' });
             setShowSeasonDialog(false);
+            setSelectedSeason(null);
             await mutate();
         } catch (err) {
             console.error(err);
@@ -83,9 +96,6 @@ const FieldDetails = () => {
 
     const handleCreateActivity = async () => {
         if (!selectedSeason) return;
-
-        console.log("ДАННИ ЗА ЗАПИС:", newActivity);
-        // ... надолу кодът си е същият
 
         setSavingActivity(true);
         try {
@@ -99,7 +109,7 @@ const FieldDetails = () => {
 
             toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Обработката е записана!' });
             setShowActivityDialog(false);
-            setNewActivity({ type: 1, driverId: null, notes: '' }); // Изчистваме
+            setNewActivity({ type: 1, driverId: null, notes: '' });
             await mutate();
         } catch (err) {
             console.error(err);
@@ -120,9 +130,7 @@ const FieldDetails = () => {
     if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}><ProgressSpinner /></div>;
     if (error || !field) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка!</h2>;
 
-    if (!selectedSeason && field.seasons && field.seasons.length > 0) {
-        setSelectedSeason(field.seasons[field.seasons.length - 1]);
-    }
+
 
     const latestActivity = selectedSeason?.activities && selectedSeason.activities.length > 0
         ? selectedSeason.activities[selectedSeason.activities.length - 1] : null;
@@ -186,7 +194,6 @@ const FieldDetails = () => {
                         </Card>
                     </div>
 
-                    {/* ❗ Таблицата вече има header с бутон */}
                     <Card style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                         <DataTable value={selectedSeason.activities} header={tableHeader} emptyMessage="Няма извършени обработки през този сезон." stripedRows>
                             <Column field="date" header="Дата" body={(r) => formatDate(r.date)}></Column>
@@ -198,7 +205,6 @@ const FieldDetails = () => {
                 </div>
             )}
 
-            {/* МОДАЛ ЗА НОВ СЕЗОН */}
             <Dialog header="Започни Нов Сезон" visible={showSeasonDialog} style={{ width: '400px' }} onHide={() => setShowSeasonDialog(false)} footer={
                 <div>
                     <Button label="Отказ" icon="pi pi-times" onClick={() => setShowSeasonDialog(false)} className="p-button-text p-button-secondary" />

@@ -5,22 +5,24 @@ import FieldDetails from "./pages/FieldDetails.tsx";
 import MainLayout from "./components/MainLayout.tsx";
 import Finances from "./pages/Finances.tsx";
 import Login from "./pages/Login.tsx";
+import Drivers from "./pages/Drivers.tsx";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<Login />} />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
 
-                <Route element={<MainLayout />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/field/:id" element={<FieldDetails />} />
-                    <Route path="/finances" element={<Finances />} />
-                </Route>
+                    <Route element={<MainLayout />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/field/:id" element={<FieldDetails />} />
+                        <Route path="/finances" element={<Finances />} />
+                        <Route path="/drivers" element={<Drivers />} />
+                    </Route>
 
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-        </BrowserRouter>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+            </BrowserRouter>
     )
 }
 
