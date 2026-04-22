@@ -68,17 +68,21 @@ const ChangePassword = () => {
                 <form onSubmit={handleSubmit} className="p-fluid">
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{ fontWeight: 'bold' }}>Текуща (временна) парола</label>
-                        <Password value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required feedback={false} toggleMask />
+                        <Password value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required feedback={false} toggleMask
+                                  style={{ paddingTop: '0.5rem', }}/>
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ fontWeight: 'bold' }}>Нова парола</label>
-                        <Password value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required promptLabel="Въведете парола" weakLabel="Слаба" mediumLabel="Средна" strongLabel="Силна" toggleMask />
+                        <label style={{ fontWeight: 'bold', }}>Нова парола</label>
+                        <Password value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                                  required promptLabel="Въведете парола" weakLabel="Слаба" mediumLabel="Средна" strongLabel="Силна" toggleMask
+                                  style={{ paddingTop: '0.5rem', }}/>
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{ fontWeight: 'bold' }}>Потвърди нова парола</label>
-                        <Password value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required feedback={false} toggleMask />
+                        <Password value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                                  required feedback={false} toggleMask style={{ paddingTop: '0.5rem', }}/>
                     </div>
 
                     {error && <Message severity="error" text={error} style={{ width: '100%', marginBottom: '1rem' }} />}

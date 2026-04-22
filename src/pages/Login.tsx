@@ -62,7 +62,6 @@ const Login = () => {
         }
     };
 
-    // ФУНКЦИЯ ЗА ЗАБРАВЕНА ПАРОЛА
     const handleResetPassword = async () => {
         if (!resetEmail) {
             toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Моля, въведете имейл адрес.' });
@@ -71,7 +70,6 @@ const Login = () => {
 
         setResetting(true);
         try {
-            // Викаме ендпойнта за Reset (виж в контролера си дали пътят е точно този)
             await api.post('/api/auth/reset-password', { email: resetEmail });
             toast.current?.show({ severity: 'success', summary: 'Изпратено', detail: 'Ако имейлът съществува, ще получите нова парола!' });
             setShowResetDialog(false);
@@ -141,7 +139,6 @@ const Login = () => {
                         </span>
                     </div>
 
-                    {/* ЛИНК ЗА ЗАБРАВЕНА ПАРОЛА */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
                         <Button
                             label="Забравена парола?"
@@ -169,7 +166,7 @@ const Login = () => {
                 </form>
             </Card>
 
-            {/* МОДАЛ ЗА ЗАБРАВЕНА ПАРОЛА */}
+            {/* Forget password */}
             <Dialog header="Възстановяване на парола" visible={showResetDialog} style={{ width: '400px' }} onHide={() => setShowResetDialog(false)} footer={
                 <div>
                     <Button label="Отказ" icon="pi pi-times" onClick={() => setShowResetDialog(false)} className="p-button-text p-button-secondary" />
@@ -179,9 +176,11 @@ const Login = () => {
                 <p className="m-0" style={{ marginBottom: '1rem' }}>
                     Въведете вашия имейл адрес. Ако той съществува в нашата система, ще ви изпратим нова временна парола.
                 </p>
-                <div className="p-fluid">
+                <div className="p-fluid" style={{display:"flex", flexWrap: "wrap",  gap: '0.4rem' }}>
                     <label style={{ fontWeight: 'bold' }}>Email *</label>
-                    <InputText type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} placeholder="Въведете имейл" />
+                    <InputText type="email" value={resetEmail}
+                               onChange={(e) => setResetEmail(e.target.value)} placeholder="Въведете имейл"
+                               />
                 </div>
             </Dialog>
         </div>
