@@ -59,6 +59,7 @@ export interface Field {
     fieldName: string;
     fieldSize: number;
     fieldLocation: string;
+    boundaryJson?: string | null;
     createdOn?: string;
     seasons: FieldSeason[];
 }

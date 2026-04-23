@@ -23,6 +23,8 @@ const Dashboard = () => {
     const [showDialog, setShowDialog] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    const [searchQuery, setSearchQuery] = useState("");
+
     const [newField, setNewField] = useState({
         fieldName: '',
         fieldSize: null as number | null,
@@ -160,10 +162,23 @@ const Dashboard = () => {
         );
     };
 
+    const filteredFields = fields?.filter(field =>
+    field.fieldName.toLowerCase().includes(searchQuery.toLowerCase()));
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1 style={{ margin: 0, color: '#333' }}>Моето Стопанство</h1>
+
+                <span className="p-input-icon-left" style={{ width: '300px' }}>
+                    <i className="pi pi-search" />
+                    <InputText
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="   Търси нива по име..."
+                        style={{ width: '100%', borderRadius: '8px' }}
+                    />
+                </span>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <Button
@@ -204,7 +219,7 @@ const Dashboard = () => {
                 </Card>
 
                 <Card title="Списък с ниви" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                    <DataTable value={fields} stripedRows paginator rows={5}>
+                    <DataTable value={filteredFields} stripedRows paginator rows={5} emptyMessage="Няма намерени ниви.">
                         <Column field="fieldName" header="Име на нива" style={{ fontWeight: 'bold' }}></Column>
                         <Column field="fieldSize" header="Декари" body={(r) => r.fieldSize ? `${r.fieldSize} дка` : '-'}></Column>
                         <Column field="fieldLocation" header="Локация"></Column>

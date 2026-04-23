@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import { api } from '../api/axiosClient';
 import { type Field, type FieldSeason, FieldOperationTypes, CropTypes } from '../types';
+import FieldMapEditor from '../components/FieldMapEditor';
 
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
@@ -79,6 +80,18 @@ const FieldDetails = () => {
         { label: 'Напръскана', value: 4 }, { label: 'Ожъната / Окосена', value: 5 }, { label: 'Издискована', value: 6 }
     ];
 
+    const handleSaveBoundary = async (boundaryJson: string) => {
+        try {
+            await api.put(`/api/field/${id}/boundary`, {
+                boundaryJson: boundaryJson
+            });
+            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Границите бяха запазени!' });
+            await mutate();
+        } catch (err) {
+            console.error(err);
+            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно запазване.' });
+        }
+    };
     const handleCreateSeason = async () => {
         if (!newSeason.year || !newSeason.cropType) {
             toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Моля, попълнете всички полета!' });
@@ -194,6 +207,13 @@ const FieldDetails = () => {
                             <h2 style={{ color: '#22C55E', margin: '0' }}>{lastDriver}</h2>
                             <small>Лице извършило последната дейност</small>
                         </Card>
+
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <FieldMapEditor
+                            initialBoundaryJson={field.boundaryJson || null}
+                            onSaveBoundary={handleSaveBoundary}
+                        />
                     </div>
 
                     <Card style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
