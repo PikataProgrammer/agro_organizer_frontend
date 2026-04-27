@@ -209,12 +209,6 @@ const FieldDetails = () => {
                         </Card>
 
                     </div>
-                    <div style={{ marginBottom: '20px' }}>
-                        <FieldMapEditor
-                            initialBoundaryJson={field.boundaryJson || null}
-                            onSaveBoundary={handleSaveBoundary}
-                        />
-                    </div>
 
                     <Card style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                         <DataTable value={selectedSeason.activities} header={tableHeader} emptyMessage="Няма извършени обработки през този сезон." stripedRows>
@@ -226,6 +220,12 @@ const FieldDetails = () => {
                     </Card>
                 </div>
             )}
+                <div style={{ marginTop: '20px' }}>
+                        <FieldMapEditor
+                            initialBoundaryJson={field.boundaryJson || null}
+                            onSaveBoundary={handleSaveBoundary}
+                        />
+                </div>
 
             <Dialog header="Започни Нов Сезон" visible={showSeasonDialog} style={{ width: '400px' }} onHide={() => setShowSeasonDialog(false)} footer={
                 <div>

@@ -45,7 +45,7 @@ const ChangePassword = () => {
             setSuccess('Паролата е сменена успешно! Моля, влезте с новата парола.');
             setTimeout(() => {
                 navigate('/login');
-            }, 3000);
+            }, 2000);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Грешна стара парола или сървърна грешка.');
         } finally {

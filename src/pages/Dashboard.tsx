@@ -49,10 +49,10 @@ const Dashboard = () => {
     };
     const downloadExcel = async (url: string, filename: string) => {
         try {
-            const response = await api.get(url, { responseType: 'blob' });
+            const response = await api.get(url, { responseType: 'blob' });  //Blob is binary file data - excel, pdf or image
             const blob = new Blob([response.data as BlobPart], { type: response.headers['content-type'] as string });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const downloadUrl = window.URL.createObjectURL(blob); // create temp download link
+            const link = document.createElement('a'); //hidden link
             link.href = downloadUrl;
             link.download = filename;
             document.body.appendChild(link);
@@ -92,7 +92,7 @@ const Dashboard = () => {
             setShowDialog(false);
             setEditingField(null);
             setNewField({ fieldName: '', fieldSize: null, fieldLocation: '' });
-            await mutate();
+            await mutate(); //refresh  or refetch everything
         } catch (err) {
             console.error(err);
             showToast('error', 'Грешка', 'Неуспешен запис.');
@@ -174,6 +174,7 @@ const Dashboard = () => {
                     <i className="pi pi-search" />
                     <InputText
                         value={searchQuery}
+
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="   Търси нива по име..."
                         style={{ width: '100%', borderRadius: '8px' }}

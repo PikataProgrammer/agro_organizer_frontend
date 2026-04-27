@@ -63,3 +63,8 @@ export interface Field {
     createdOn?: string;
     seasons: FieldSeason[];
 }
+
+export interface FieldMapEditorProps {
+    initialBoundaryJson: string | null;
+    onSaveBoundary: (boundaryJson: string) => void;
+}

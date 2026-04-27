@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polygon, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, useMapEvents, useMap } from 'react-leaflet'; //library for maps
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
+import type {FieldMapEditorProps} from "../types";
+import {useApp} from "../context/AppContext.tsx";
 
 const MapClickHandler = ({ onMapClick, isDrawing }: { onMapClick: (point: [number, number]) => void, isDrawing: boolean }) => {
     useMapEvents({
@@ -25,7 +27,8 @@ const MapController = ({ targetCenter }: { targetCenter: [number, number] | null
     return null;
 };
 
-const MapBoundsFitter = ({ points, fitDone, setFitDone }: { points: [number, number][], fitDone: boolean, setFitDone: (v: boolean) => void }) => {
+const MapBoundsFitter = ({ points, fitDone, setFitDone }: { points: [number, number][], fitDone: boolean,
+    setFitDone: (v: boolean) => void }) => {
     const map = useMap();
     useEffect(() => {
         if (points.length > 0 && !fitDone) {
@@ -34,12 +37,8 @@ const MapBoundsFitter = ({ points, fitDone, setFitDone }: { points: [number, num
         }
     }, [points, map, fitDone, setFitDone]);
     return null;
-};
+}; //showing field that already exists
 
-interface FieldMapEditorProps {
-    initialBoundaryJson: string | null;
-    onSaveBoundary: (boundaryJson: string) => void;
-}
 
 const FieldMapEditor: React.FC<FieldMapEditorProps> = ({ initialBoundaryJson, onSaveBoundary }) => {
     const [points, setPoints] = useState<[number, number][]>([]);
@@ -48,8 +47,9 @@ const FieldMapEditor: React.FC<FieldMapEditorProps> = ({ initialBoundaryJson, on
     const [searchQuery, setSearchQuery] = useState("");
     const [searchedLocation, setSearchedLocation] = useState<[number, number] | null>(null);
     const [initialFitDone, setInitialFitDone] = useState(false);
+    const { showToast } = useApp();
 
-    const defaultCenter: [number, number] = [42.7339, 25.4858];
+    const defaultCenter: [number, number] = [42.7339, 25.4858]; // coordinates in Bulgaria
 
     useEffect(() => {
         if (initialBoundaryJson && initialBoundaryJson !== "null" && initialBoundaryJson !== "[]") {
@@ -94,7 +94,7 @@ const FieldMapEditor: React.FC<FieldMapEditorProps> = ({ initialBoundaryJson, on
                 const { lat, lon } = data[0];
                 setSearchedLocation([parseFloat(lat), parseFloat(lon)]);
             } else {
-                alert("Локацията не е намерена!");
+                showToast("error", "Локацията не е намерена!", "Моля въведете валидна локация!")
             }
         } catch (error) {
             console.error("Грешка при търсенето", error);

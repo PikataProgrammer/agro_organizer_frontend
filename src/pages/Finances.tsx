@@ -109,7 +109,7 @@ const Finances = () => {
         }
     };
 
-    const downloadExcel = async (url: string, filename: string) => { /* ... същия код като преди ... */
+    const downloadExcel = async (url: string, filename: string) => {
         try {
             const response = await api.get(url, { responseType: 'blob' });
             const blob = new Blob([response.data], { type: response.headers['content-type'] });

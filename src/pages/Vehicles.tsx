@@ -40,13 +40,13 @@ const Vehicles = () => {
         { label: 'Друго', value: 'Друго' }
     ];
 
-    const openNew = () => {
+    const openNew = () => { //CREATE
         setEditingVehicleId(null);
         setVehicleData({ name: '', type: '', plateNumber: '', purchaseYear: null, lastServiceDate: null });
         setShowDialog(true);
     };
 
-    const openEdit = (vehicle: any) => {
+    const openEdit = (vehicle: any) => { //UPDATE
         setEditingVehicleId(vehicle.id);
         setVehicleData({
             name: vehicle.name,
@@ -58,7 +58,7 @@ const Vehicles = () => {
         setShowDialog(true);
     };
 
-    const handleSave = async () => {
+    const handleSave = async () => { //CORE logic
         if (!vehicleData.name.trim() || !vehicleData.type || !vehicleData.plateNumber.trim()) {
             showToast('warn', 'Внимание', 'Попълнете задължителните полета (Име, Вид, Рег. номер)!');
             return;

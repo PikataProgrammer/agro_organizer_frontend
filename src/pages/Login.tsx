@@ -166,7 +166,7 @@ const Login = () => {
                 </form>
             </Card>
 
-            {/* Forget password */}
+            {/* Forgot password */}
             <Dialog header="Възстановяване на парола" visible={showResetDialog} style={{ width: '400px' }} onHide={() => setShowResetDialog(false)} footer={
                 <div>
                     <Button label="Отказ" icon="pi pi-times" onClick={() => setShowResetDialog(false)} className="p-button-text p-button-secondary" />

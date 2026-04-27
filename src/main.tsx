@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <AppProvider>
                 <SWRConfig value={{ fetcher }}>
                     <App />
-                    </SWRConfig>
+                </SWRConfig>
             </AppProvider>
     </React.StrictMode>
 );
