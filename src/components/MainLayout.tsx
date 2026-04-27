@@ -20,6 +20,12 @@ const MainLayout = () => {
             className: location.pathname.includes('/finances') ? 'p-menuitem-active' : ''
         },
         {
+            label: 'Борси и Пазари',
+            icon: 'pi pi-fw pi-chart-line',
+            command: () => navigate('/market'),
+            className: location.pathname.includes('/market') ? 'p-menuitem-active' : ''
+        },
+        {
             label: 'Моят Екип',
             icon: 'pi pi-fw pi-users',
             command: () => navigate('/drivers'),
