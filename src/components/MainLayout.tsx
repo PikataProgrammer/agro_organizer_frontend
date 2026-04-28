@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Menu } from 'primereact/menu';
 import { Button } from 'primereact/button';
+import {api} from "../api/axiosClient.ts";
 
 const MainLayout = () => {
     const navigate = useNavigate();
@@ -45,9 +46,17 @@ const MainLayout = () => {
         }
     ];
 
-    const handleLogout = () => {
-        localStorage.removeItem('userId');
-        navigate('/login');
+    const handleLogout = async () => {
+        try {
+            await await api.post('/api/auth/logout');
+        }catch (error) {
+            console.error('Грешка при изход:', error);
+        } finally {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+
+            navigate('/login');
+        }
     };
 
     return (

@@ -125,6 +125,52 @@ const Finances = () => {
         }
     };
 
+    const handleDeleteExpense = async (id: number) => {
+        if (!window.confirm('Сигурни ли сте, че искате да изтриете този разход?')) return;
+        try {
+            await api.delete(`/api/expense/${id}`);
+            mutateExpenses();
+            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Разходът е изтрит!' });
+        } catch (err) {
+            console.error(err);
+            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно изтриване.' });
+        }
+    };
+
+
+    const handleDeleteSale = async (id: number) => {
+        if (!window.confirm('Сигурни ли сте, че искате да изтриете този приход?')) return;
+        try {
+            await api.delete(`/api/sale/${id}`);
+            mutateSales();
+            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Приходът е изтрит!' });
+        } catch (err) {
+            console.error(err);
+            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно изтриване.' });
+        }
+    };
+
+    const expenseActionTemplate = (rowData: Expense) => {
+
+        const id = (rowData as any).id || (rowData as any).Id;
+        return (
+            <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleDeleteExpense(id)} tooltip="Изтрий" />
+        );
+    };
+
+    const saleActionTemplate = (rowData: Sale) => {
+        const id = (rowData as any).saleId;
+
+        return (
+            <Button
+                icon="pi pi-trash"
+                className="p-button-rounded p-button-text p-button-danger"
+                onClick={() => handleDeleteSale(id)}
+                tooltip="Изтрий"
+            />
+        );
+    };
+
     if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}><ProgressSpinner /></div>;
     if (error) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка при зареждане.</h2>;
 
@@ -164,14 +210,18 @@ const Finances = () => {
                         <Column field="dateSigned" header="Дата" body={(r) => formatDate(r.dateSigned)}></Column>
                         <Column field="buyerName" header="Купувач"></Column>
                         <Column field="quantity" header="Количество (кг)"></Column>
-                        <Column field="totalPrice" header="Сума" body={(r) => <strong style={{ color: '#22C55E' }}>+{formatCurrency(r.totalPrice)}</strong>}></Column>
+                        <Column field="totalPrice" header="Сума" body={(r) =>
+                            <strong style={{ color: '#22C55E' }}>+{formatCurrency(r.totalPrice)}</strong>}></Column>
+                        <Column body={saleActionTemplate} style={{ width: '4rem', textAlign: 'center' }}></Column>
                     </DataTable>
                 </Card>
                 <Card title="Списък Разходи" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <DataTable value={expenses} emptyMessage="Няма намерени разходи." stripedRows paginator rows={5} size="small">
                         <Column field="date" header="Дата" body={(r) => formatDate(r.date)}></Column>
                         <Column field="type" header="Вид разход" body={(r) => <Tag value={r.type} severity="warning" />}></Column>
-                        <Column field="amount" header="Сума" body={(r) => <strong style={{ color: '#EF4444' }}>-{formatCurrency(r.amount)}</strong>}></Column>
+                        <Column field="amount" header="Сума" body={(r) =>
+                            <strong style={{ color: '#EF4444' }}>-{formatCurrency(r.amount)}</strong>}></Column>
+                        <Column body={expenseActionTemplate} style={{ width: '4rem', textAlign: 'center' }}></Column>
                     </DataTable>
                 </Card>
             </div>
