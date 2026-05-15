@@ -9,6 +9,7 @@ import Drivers from "./pages/Drivers.tsx";
 import Vehicles from "./pages/Vehicles.tsx";
 import ChangePassword from "./pages/ChangePassword.tsx";
 import Market from "./pages/Market.tsx";
+import VehicleDetails from "./pages/VehicleDetails.tsx";
 
 function App() {
     return (
@@ -23,6 +24,7 @@ function App() {
                         <Route path="/market" element={<Market />} />
                         <Route path="/drivers" element={<Drivers />} />
                         <Route path="/vehicles" element={<Vehicles />} />
+                        <Route path="/vehicles/:id" element={<VehicleDetails />} />
                         <Route path="/change-password" element={<ChangePassword />} />
                     </Route>
 

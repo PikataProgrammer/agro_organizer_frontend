@@ -56,6 +56,7 @@ export interface FieldSeason {
 
 export interface Field {
     fieldId: number;
+    fieldNumber: string;
     fieldName: string;
     fieldSize: number;
     fieldLocation: string;

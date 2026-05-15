@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api/axiosClient';
 import { type Field, CropTypes } from '../types';
 import { useApp } from '../context/AppContext';
+import { Dropdown } from 'primereact/dropdown';
 
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
@@ -24,8 +25,22 @@ const Dashboard = () => {
     const [saving, setSaving] = useState(false);
 
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCropFilter, setSelectedCropFilter] = useState<number | null>(null);
+
+    const cropFilterOptions = [
+        { label: 'Пшеница', value: 1 },
+        { label: 'Ръж', value: 2 },
+        { label: 'Грах', value: 3 },
+        { label: 'Фацелия', value: 4 },
+        { label: 'Слънчоглед', value: 5 },
+        { label: 'Царевица', value: 6 },
+        { label: 'Угар', value: 7 },
+        { label: 'Люцерна', value: 8 },
+        { label: 'Изкуствени ливади', value: 9 }
+    ]
 
     const [newField, setNewField] = useState({
+        fieldNumber: "",
         fieldName: '',
         fieldSize: null as number | null,
         fieldLocation: ''
@@ -41,6 +56,7 @@ const Dashboard = () => {
     const openEditDialog = (field: Field) => {
         setEditingField(field);
         setNewField({
+            fieldNumber: field.fieldNumber,
             fieldName: field.fieldName,
             fieldSize: field.fieldSize ?? null,
             fieldLocation: field.fieldLocation ?? ''
@@ -66,8 +82,8 @@ const Dashboard = () => {
     };
 
     const handleSaveField = async () => {
-        if (!newField.fieldName.trim() || !newField.fieldSize) {
-            showToast('warn', 'Внимание', 'Моля, въведете име и размер (декари) на нивата!');
+        if (!newField.fieldNumber.trim() || !newField.fieldName.trim() || !newField.fieldSize) {
+            showToast('warn', 'Внимание', 'Моля, въведете номер, име и размер (декари) на нивата!');
             return;
         }
         setSaving(true);
@@ -91,7 +107,7 @@ const Dashboard = () => {
 
             setShowDialog(false);
             setEditingField(null);
-            setNewField({ fieldName: '', fieldSize: null, fieldLocation: '' });
+            setNewField({ fieldNumber: "", fieldName: '', fieldSize: null, fieldLocation: '' });
             await mutate(); //refresh  or refetch everything
         } catch (err) {
             console.error(err);
@@ -101,9 +117,10 @@ const Dashboard = () => {
         }
     };
 
-    const handleDeleteField = (id: number, fieldName: string) => {
+    const handleDeleteField = (id: number, fieldName: string, fieldNumber: string) => {
+        const displayName = fieldNumber ? `${fieldName} (КБС: ${fieldNumber})` : fieldName;
         confirmAction(
-            `Сигурни ли сте, че искате да изтриете нивата "${fieldName}"? Всички данни за нея ще бъдат загубени!`,
+            `Сигурни ли сте, че искате да изтриете нивата "${displayName}"? Всички данни за нея ще бъдат загубени!`,
             "Внимание: Изтриване на нива",
             async () => {
                 try {
@@ -157,42 +174,87 @@ const Dashboard = () => {
             <div style={{ display: 'flex', gap: '5px' }}>
                 <Button label="Отвори" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/field/${rowData.fieldId}`)} />
                 <Button icon="pi pi-pencil" tooltip="Редактирай" className="p-button-text p-button-sm p-button-warning" onClick={() => openEditDialog(rowData)} />
-                <Button icon="pi pi-trash" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldName)} />
+                <Button icon="pi pi-trash" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldNumber, rowData.fieldName)} />
             </div>
         );
     };
 
-    const filteredFields = fields?.filter(field =>
-    field.fieldName.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredFields = fields?.filter(field => {
+        const query = searchQuery ? searchQuery.toLowerCase().trim() : "";
+
+        let matchesSearch = true;
+        if (query !== "") {
+            matchesSearch =
+                (field.fieldName && field.fieldName.toLowerCase().includes(query)) ||
+                (field.fieldNumber && String(field.fieldNumber).toLowerCase().includes(query)) ||
+                (field.fieldLocation && field.fieldLocation.toLowerCase().includes(query));
+        }
+
+        let matchesCrop = true;
+
+        if (selectedCropFilter) {
+            const latestSeason = field.seasons && field.seasons.length > 0
+                ? field.seasons[field.seasons.length - 1]
+                : null;
+
+            const cropType = latestSeason ? latestSeason.cropType : null;
+            matchesCrop = cropType === selectedCropFilter;
+        }
+
+        return matchesSearch && matchesCrop;
+    });
+
+
+    const handleDownloadReport = () => {
+        let url = 'api/reports/field/excel';
+
+        if(selectedCropFilter) {
+            url += `?cropType=${selectedCropFilter}`
+        }
+
+        url += selectedCropFilter ? `&year=2026` : `?year=2026`;
+
+        downloadExcel(url, 'FieldReport.xlsx');
+    }
 
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1 style={{ margin: 0, color: '#333' }}>Моето Стопанство</h1>
 
-                <span className="p-input-icon-left" style={{ width: '300px' }}>
-                    <i className="pi pi-search" />
-                    <InputText
-                        value={searchQuery}
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <span className="p-input-icon-left" style={{ width: '300px' }}>
+                        <i className="pi pi-search" />
+                        <InputText
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder=" Търси по име, КБС или локация..."
+                            style={{ width: '100%', borderRadius: '8px' }}
+                        />
+                    </span>
 
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="   Търси нива по име..."
-                        style={{ width: '100%', borderRadius: '8px' }}
+                    <Dropdown
+                        value={selectedCropFilter}
+                        options={cropFilterOptions}
+                        onChange={(e) => setSelectedCropFilter(e.value)}
+                        placeholder="Филтър: Култура"
+                        style={{ width: '200px', borderRadius: '8px' }}
+                        showClear={!!selectedCropFilter}
                     />
-                </span>
+                </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <Button
                         label="Справка Ниви"
                         icon="pi pi-file-excel"
                         className="p-button-secondary p-button-outlined"
-                        onClick={() => downloadExcel('/api/reports/field/excel', 'FieldsReport.xlsx')}
+                        onClick={handleDownloadReport}
                     />
                     <Button
                         label="Нова Нива"
                         icon="pi pi-plus"
                         className="p-button-success"
-                        onClick={() => { setEditingField(null); setNewField({fieldName:'', fieldSize: null, fieldLocation: ''}); setShowDialog(true); }}
+                        onClick={() => { setEditingField(null); setNewField({fieldNumber:"", fieldName:'', fieldSize: null, fieldLocation: ''}); setShowDialog(true); }}
                     />
                 </div>
             </div>
@@ -204,7 +266,7 @@ const Dashboard = () => {
                 </Card>
                 <Card style={{ borderLeft: '5px solid #8B5CF6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Общо Площ</p>
-                    <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>{totalArea} <span style={{fontSize: '1rem', color: '#888'}}>дка</span></h2>
+                    <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>{totalArea.toFixed(2)} <span style={{fontSize: '1rem', color: '#888'}}>дка</span></h2>
                 </Card>
                 <Card style={{ borderLeft: '5px solid #22C55E', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Засети Ниви</p>
@@ -221,6 +283,7 @@ const Dashboard = () => {
 
                 <Card title="Списък с ниви" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <DataTable value={filteredFields} stripedRows paginator rows={5} emptyMessage="Няма намерени ниви.">
+                        <Column field = "fieldNumber" header="КБС"/>
                         <Column field="fieldName" header="Име на нива" style={{ fontWeight: 'bold' }}></Column>
                         <Column field="fieldSize" header="Декари" body={(r) => r.fieldSize ? `${r.fieldSize} дка` : '-'}></Column>
                         <Column field="fieldLocation" header="Локация"></Column>
@@ -237,6 +300,10 @@ const Dashboard = () => {
                 </div>
             }>
                 <div className="p-fluid">
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontWeight: 'bold' }}>KBC на нивата *</label>
+                        <InputText value={newField.fieldNumber} onChange={(e) => setNewField({...newField, fieldNumber: e.target.value})} placeholder="напр. 123456" />
+                    </div>
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={{ fontWeight: 'bold' }}>Име на нивата *</label>
                         <InputText value={newField.fieldName} onChange={(e) => setNewField({...newField, fieldName: e.target.value})} placeholder="напр. Голямата нива" />

@@ -14,10 +14,12 @@ import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Tag } from 'primereact/tag';
+import {useNavigate} from "react-router-dom";
 
 const Vehicles = () => {
     const { data: vehicles, error, isLoading, mutate } = useSWR<any[]>('/api/vehicles');
     const { showToast, confirmAction } = useApp();
+    const navigate = useNavigate();
 
     const [showDialog, setShowDialog] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -142,6 +144,7 @@ const Vehicles = () => {
     const actionBodyTemplate = (rowData: any) => {
         return (
             <div style={{ display: 'flex', gap: '5px' }}>
+                <Button label="Допълнителна информация" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/vehicles/${rowData.id}`)} />
                 <Button icon="pi pi-pencil" tooltip="Редактирай" className="p-button-text p-button-sm p-button-warning" onClick={() => openEdit(rowData)} />
                 <Button icon="pi pi-trash" tooltip="Изтрий" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDelete(rowData.id, rowData.name)} />
             </div>
