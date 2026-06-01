@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import useSWR from 'swr';
 import { api } from '../api/axiosClient';
 import { type Sale, type Expense } from '../types';
@@ -13,13 +13,13 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
-import { Toast } from 'primereact/toast';
+import {useApp} from "../context/AppContext.tsx";
 
 const Finances = () => {
     const { data: sales, error: errorSales, isLoading: loadingSales, mutate: mutateSales } = useSWR<Sale[]>('/api/sale');
     const { data: expenses, error: errorExpenses, isLoading: loadingExpenses, mutate: mutateExpenses } = useSWR<Expense[]>('/api/expense');
 
-    const toast = useRef<Toast>(null);
+    const {showToast, confirmAction } = useApp();
 
     const [showSaleDialog, setShowSaleDialog] = useState(false);
     const [showExpenseDialog, setShowExpenseDialog] = useState(false);
@@ -27,14 +27,14 @@ const Finances = () => {
 
     const [newExpense, setNewExpense] = useState({ type: '', amount: null as number | null });
 
-    // НОВО: Добавяме incomeType и totalAmount в state-а
+
     const [newSale, setNewSale] = useState({
-        incomeType: 'sale', // 'sale' (продажба) или 'subsidy' (субсидия)
+        incomeType: 'sale',
         buyerName: '',
         quantity: null as number | null,
         priceForKg: null as number | null,
         cropType: 1 as number | null,
-        totalAmount: null as number | null // Използва се само при субсидия
+        totalAmount: null as number | null
     });
 
     const isLoading = loadingSales || loadingExpenses;
@@ -68,7 +68,7 @@ const Finances = () => {
 
     const handleSaveExpense = async () => {
         if (!newExpense.type || !newExpense.amount) {
-            toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Попълнете всички полета!' });
+            showToast(  'warn','Внимание',  'Попълнете всички полета!' );
             return;
         }
         setSaving(true);
@@ -84,10 +84,10 @@ const Finances = () => {
             setShowExpenseDialog(false);
             setNewExpense({ type: '', amount: null });
             mutateExpenses();
-            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Разходът е добавен!' });
+            showToast( 'success', 'Успех','Разходът е добавен!' );
         } catch (err) {
             console.error(err);
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешен запис.' });
+            showToast( 'error', 'Грешка', 'Неуспешен запис.' );
         } finally {
             setSaving(false);
         }
@@ -100,10 +100,9 @@ const Finances = () => {
             userId: Number(userId)
         };
 
-        // Логика ако е ПРОДАЖБА
         if (newSale.incomeType === 'sale') {
             if (!newSale.buyerName || !newSale.quantity || !newSale.priceForKg) {
-                toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Попълнете всички полета за продажба!' });
+                showToast( 'warn', 'Внимание', 'Попълнете всички полета за продажба!' );
                 return;
             }
             payload = {
@@ -115,19 +114,18 @@ const Finances = () => {
                 totalPrice: newSale.quantity * newSale.priceForKg
             };
         }
-        // Логика ако е СУБСИДИЯ
         else {
             if (!newSale.buyerName || !newSale.totalAmount) {
-                toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Попълнете описание и сума!' });
+                showToast( 'warn',  'Внимание',  'Попълнете описание и сума!' );
                 return;
             }
             payload = {
                 ...payload,
-                buyerName: newSale.buyerName, // Използваме buyerName за "Име на субсидия" (напр. "ДФЗ - площ")
-                quantity: null, // Празно
-                priceForKg: null, // Празно
-                cropType: null, // Няма култура
-                totalPrice: newSale.totalAmount // Директно записваме сумата
+                buyerName: newSale.buyerName,
+                quantity: null,
+                priceForKg: null,
+                cropType: null,
+                totalPrice: newSale.totalAmount
             };
         }
 
@@ -135,13 +133,12 @@ const Finances = () => {
         try {
             await api.post('/api/sale', payload);
             setShowSaleDialog(false);
-            // Ресетваме стейта
             setNewSale({ incomeType: 'sale', buyerName: '', quantity: null, priceForKg: null, cropType: 1, totalAmount: null });
             mutateSales();
-            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Приходът е отразен!' });
+            showToast( 'success','Успех',  'Приходът е отразен!' );
         } catch (err) {
             console.error(err);
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешен запис.' });
+            showToast( 'error', 'Грешка', 'Неуспешен запис.' );
         } finally {
             setSaving(false);
         }
@@ -159,37 +156,49 @@ const Finances = () => {
             link.click();
             link.remove();
         } catch (err) {
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Проблем при свалянето на Excel.' });
+            showToast( 'error', 'Грешка', 'Проблем при свалянето на Excel.' );
         }
     };
 
-    const handleDeleteExpense = async (id: number) => {
-        if (!window.confirm('Сигурни ли сте, че искате да изтриете този разход?')) return;
-        try {
-            await api.delete(`/api/expense/${id}`);
-            mutateExpenses();
-            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Разходът е изтрит!' });
-        } catch (err) {
-            console.error(err);
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно изтриване.' });
-        }
+    const handleDeleteExpense = (id: number, type: string) => {
+        confirmAction(
+            `Сигурни ли сте, че искате да премахнете текущия разход "${type}"?`,
+            "Потвърждение за изтриване",
+            async () => {
+                try {
+                    await api.delete(`/api/expense/${id}`);
+                    mutateExpenses();
+                    showToast( 'success','Успех','Разходът е изтрит!' );
+                } catch (err) {
+                    console.error(err);
+                    showToast( 'error', 'Грешка','Неуспешно изтриване.' );
+                }
+            }
+        );
+
     };
 
-    const handleDeleteSale = async (id: number) => {
-        if (!window.confirm('Сигурни ли сте, че искате да изтриете този приход?')) return;
-        try {
-            await api.delete(`/api/sale/${id}`);
-            mutateSales();
-            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Приходът е изтрит!' });
-        } catch (err) {
-            console.error(err);
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно изтриване.' });
-        }
+    const handleDeleteSale = (id: number) => {
+        confirmAction(
+            `Сигурни ли сте, че искате да премахнете текущия приход?`,
+            "Потвърждение за изтриване",
+            async () => {
+                try {
+                    await api.delete(`/api/sale/${id}`);
+                    mutateSales();
+                    showToast( 'success', 'Успех',  'Приходът е изтрит!' );
+                } catch (err) {
+                    console.error(err);
+                    showToast( 'error', 'Грешка',  'Неуспешно изтриване.' );
+                }
+            }
+        );
+
     };
 
     const expenseActionTemplate = (rowData: Expense) => {
         const id = (rowData as any).id || (rowData as any).Id;
-        return <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleDeleteExpense(id)} tooltip="Изтрий" />;
+        return <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleDeleteExpense(id, rowData.type)} tooltip="Изтрий" />;
     };
 
     const saleActionTemplate = (rowData: Sale) => {
@@ -197,7 +206,6 @@ const Finances = () => {
         return <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleDeleteSale(id)} tooltip="Изтрий" />;
     };
 
-    // НОВО: Шаблон за изобразяване на типа приход (Субсидия или Продажба) в таблицата
     const incomeSourceTemplate = (rowData: any) => {
         if (!rowData.cropType) {
             return <Tag value="Субсидия / Други" severity="info" />;
@@ -210,8 +218,6 @@ const Finances = () => {
 
     return (
         <div style={{ padding: '10px' }}>
-            <Toast ref={toast} position="top-right" />
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1 style={{ margin: 0, color: '#333' }}>Счетоводство и Финанси</h1>
                 <div style={{ display: 'flex', gap: '10px' }}>

@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { api } from '../api/axiosClient';
 import { type Field, type FieldSeason, FieldOperationTypes, CropTypes } from '../types';
 import FieldMapEditor from '../components/FieldMapEditor';
+import { useApp } from '../context/AppContext';
 
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
@@ -20,6 +21,7 @@ import { Toast } from 'primereact/toast';
 const FieldDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { showToast, confirmAction } = useApp();
     const { data: field, error: fieldError, isLoading: loadingField, mutate } = useSWR<Field>(`/api/field/${id}`);
 
     const { data: drivers, error: driversError, isLoading: loadingDrivers } = useSWR<{ driverId: number; driverName: string }[]>('/api/driver');
@@ -60,7 +62,8 @@ const FieldDetails = () => {
     const formatDate = (value: string) => value ? new Date(value).toLocaleDateString('bg-BG') : '-';
 
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар (Празно)', 8: 'Люцерна', 9: 'Изкуствени ливади' };
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
+            8: 'Люцерна', 9: 'Изкуствени ливади', 10: "Мека пшеница - зимна"};
         return crops[crop] || 'Неизвестно';
     };
 
@@ -70,9 +73,16 @@ const FieldDetails = () => {
     };
 
     const cropOptions = [
-        { label: 'Пшеница', value: 1 }, { label: 'Ръж', value: 2 }, { label: 'Грах', value: 3 },
-        { label: 'Фацелия', value: 4 }, { label: 'Слънчоглед', value: 5 }, { label: 'Царевица', value: 6 },
-        { label: 'Угар (Празно)', value: 7 }, { label: 'Люцерна', value: 8 }, { label: 'Изкуствени ливади', value: 9 }
+        { label: 'Пшеница', value: 1 },
+        { label: 'Ръж', value: 2 },
+        { label: 'Грах', value: 3 },
+        { label: 'Фацелия', value: 4 },
+        { label: 'Слънчоглед', value: 5 },
+        { label: 'Царевица', value: 6 },
+        { label: 'Угар', value: 7 },
+        { label: 'Люцерна', value: 8 },
+        { label: 'Изкуствени ливади', value: 9 },
+        { label: 'Мека пшеница-зимна', value: 10 },
     ];
 
     const operationOptions = [
@@ -161,6 +171,24 @@ const FieldDetails = () => {
             <Button label="Добави Обработка" icon="pi pi-plus" className="p-button-sm p-button-info" onClick={() => setShowActivityDialog(true)} disabled={!selectedSeason} />
         </div>
     );
+    const handleDeleteSeason = async () => {
+        if (!selectedSeason) return;
+        confirmAction(
+            `Сигурни ли сте, че искате да изтриете текущия сезон? Всички данни за него ще бъдат загубени!`,
+            "Внимание: Изтриване на сезон",
+            async () => {
+                try {
+                    await api.delete(`/api/fieldseason/${selectedSeason.id}`);
+                    showToast('success', 'Успех', 'Сезонът беше изтрит!');
+                    setSelectedSeason(null);
+                    await mutate();
+                } catch {
+                    showToast('error', 'Грешка', 'Неуспешно изтриване на сезона.');
+                }
+            }
+        );
+
+    }
 
     return (
         <div style={{ padding: '20px', backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
@@ -182,7 +210,16 @@ const FieldDetails = () => {
                         style={{ width: '250px' }}
                         emptyMessage="Няма сезони"
                     />
-                    <Button icon="pi pi-plus" tooltip="Нов Сезон" className="p-button-success p-button-outlined" onClick={() => setShowSeasonDialog(true)} />
+                    <Button icon="pi pi-plus" tooltip="Нов Сезон" className="p-button-success p-button-outlined"
+                            onClick={() => setShowSeasonDialog(true)} />
+                    {selectedSeason && (
+                        <Button
+                            icon="pi pi-trash"
+                            tooltip="Изтрий текущия сезон"
+                            className="p-button-danger p-button-outlined"
+                            onClick={handleDeleteSeason}
+                        />
+                    )}
                 </div>
             </div>
 

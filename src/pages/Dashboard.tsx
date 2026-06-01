@@ -15,6 +15,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Chart } from 'primereact/chart';
+import WeatherWidget from "./WeatherWidget.tsx";
 
 const Dashboard = () => {
     const { data: fields, error, isLoading, mutate } = useSWR<Field[]>('/api/field');
@@ -36,7 +37,8 @@ const Dashboard = () => {
         { label: 'Царевица', value: 6 },
         { label: 'Угар', value: 7 },
         { label: 'Люцерна', value: 8 },
-        { label: 'Изкуствени ливади', value: 9 }
+        { label: 'Изкуствени ливади', value: 9 },
+        { label: 'Мека пшеница-зимна', value: 10 },
     ]
 
     const [newField, setNewField] = useState({
@@ -49,7 +51,8 @@ const Dashboard = () => {
     const [editingField, setEditingField] = useState<Field | null>(null);
 
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар', 8: 'Люцерна', 9: 'Изкуствени ливади' };
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
+            8: 'Люцерна', 9: 'Изкуствени ливади', 10: "Мека пшеница - зимна" };
         return crops[crop] || 'Неизвестно';
     };
 
@@ -83,7 +86,7 @@ const Dashboard = () => {
 
     const handleSaveField = async () => {
         if (!newField.fieldNumber.trim() || !newField.fieldName.trim() || !newField.fieldSize) {
-            showToast('warn', 'Внимание', 'Моля, въведете номер, име и размер (декари) на нивата!');
+            showToast('warn', 'Внимание', 'Моля, въведете номер, име и размер (хектари) на нивата!');
             return;
         }
         setSaving(true);
@@ -127,7 +130,7 @@ const Dashboard = () => {
                     await api.delete(`/api/field/${id}`);
                     showToast('success', 'Успех', 'Нивата беше изтрита.');
                     await mutate();
-                } catch (err) {
+                } catch {
                     showToast('error', 'Грешка', 'Неуспешно изтриване.');
                 }
             }
@@ -174,7 +177,7 @@ const Dashboard = () => {
             <div style={{ display: 'flex', gap: '5px' }}>
                 <Button label="Отвори" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/field/${rowData.fieldId}`)} />
                 <Button icon="pi pi-pencil" tooltip="Редактирай" className="p-button-text p-button-sm p-button-warning" onClick={() => openEditDialog(rowData)} />
-                <Button icon="pi pi-trash" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldNumber, rowData.fieldName)} />
+                <Button icon="pi pi-trash" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDeleteField(rowData.fieldId, rowData.fieldName, rowData.fieldNumber)} />
             </div>
         );
     };
@@ -258,7 +261,9 @@ const Dashboard = () => {
                     />
                 </div>
             </div>
-
+            <div style={{ marginBottom: '20px' }}>
+                <WeatherWidget city="Panagyurishte" />
+            </div>
             <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 <Card style={{ borderLeft: '5px solid #3B82F6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Общо Ниви</p>
@@ -266,7 +271,7 @@ const Dashboard = () => {
                 </Card>
                 <Card style={{ borderLeft: '5px solid #8B5CF6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Общо Площ</p>
-                    <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>{totalArea.toFixed(2)} <span style={{fontSize: '1rem', color: '#888'}}>дка</span></h2>
+                    <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>{totalArea.toFixed(2)} <span style={{fontSize: '1rem', color: '#888'}}>ха</span></h2>
                 </Card>
                 <Card style={{ borderLeft: '5px solid #22C55E', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Засети Ниви</p>
@@ -285,7 +290,7 @@ const Dashboard = () => {
                     <DataTable value={filteredFields} stripedRows paginator rows={5} emptyMessage="Няма намерени ниви.">
                         <Column field = "fieldNumber" header="КБС"/>
                         <Column field="fieldName" header="Име на нива" style={{ fontWeight: 'bold' }}></Column>
-                        <Column field="fieldSize" header="Декари" body={(r) => r.fieldSize ? `${r.fieldSize} дка` : '-'}></Column>
+                        <Column field="fieldSize" header="Хектари" body={(r) => r.fieldSize ? `${r.fieldSize} ха` : '-'}></Column>
                         <Column field="fieldLocation" header="Локация"></Column>
                         <Column header="Текуща култура" body={currentCropTemplate}></Column>
                         <Column body={actionBodyTemplate} style={{ width: '160px' }}></Column>
@@ -311,8 +316,11 @@ const Dashboard = () => {
 
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <div style={{ flex: 1 }}>
-                            <label style={{ fontWeight: 'bold' }}>Площ (декари) *</label>
-                            <InputNumber value={newField.fieldSize} onValueChange={(e) => setNewField({...newField, fieldSize: e.value ?? null})} min={0} placeholder="напр. 50" />
+                            <label style={{ fontWeight: 'bold' }}>Площ (хектари) *</label>
+                            <InputNumber value={newField.fieldSize}
+                                         onValueChange={(e) => setNewField({...newField, fieldSize: e.value ?? null})}
+                                         min={0} minFractionDigits={0}
+                                         maxFractionDigits={2} locale="bg-BG" placeholder="напр. 50" />
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={{ fontWeight: 'bold' }}>Локация (землище)</label>
