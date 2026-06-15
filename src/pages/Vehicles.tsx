@@ -144,7 +144,7 @@ const Vehicles = () => {
     const actionBodyTemplate = (rowData: any) => {
         return (
             <div style={{ display: 'flex', gap: '5px' }}>
-                <Button label="Допълнителна информация" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/vehicles/${rowData.id}`)} />
+                <Button label="Сервизна история" icon="pi pi-search" className="p-button-text p-button-sm p-button-info" onClick={() => navigate(`/vehicles/${rowData.id}`)} />
                 <Button icon="pi pi-pencil" tooltip="Редактирай" className="p-button-text p-button-sm p-button-warning" onClick={() => openEdit(rowData)} />
                 <Button icon="pi pi-trash" tooltip="Изтрий" className="p-button-text p-button-sm p-button-danger" onClick={() => handleDelete(rowData.id, rowData.name)} />
             </div>

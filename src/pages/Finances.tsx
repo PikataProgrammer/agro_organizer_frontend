@@ -54,7 +54,7 @@ const Finances = () => {
     ];
 
     const cropOptions = [
-        { label: 'Пшеница', value: 1 }, { label: 'Ръж', value: 2 }, { label: 'Грах', value: 3 },
+        { label: 'Пшеница', value: 1 }, { label: 'Ръж', value: 2 }, { label: 'Зелен грах', value: 3 },
         { label: 'Фацелия', value: 4 }, { label: 'Слънчоглед', value: 5 }, { label: 'Царевица', value: 6 },
         { label: 'Ечемик', value: 7 }, { label: 'Люцерна', value: 8 }
     ];

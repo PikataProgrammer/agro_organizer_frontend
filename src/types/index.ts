@@ -9,10 +9,15 @@ export enum CropTypes {
     Lucerne = 8,
     Lawns = 9,
     Wheat_winter = 10,
+    Peas_spring = 11,
 }
 
 export enum FieldOperationTypes {
     Plowing = 1, Sowing = 2, Fertilizing = 3, Spraying = 4, Harvesting = 5, Disking = 6, None = 7,
+}
+export enum StorageType {
+    Seed = 1,
+    Sale = 2
 }
 
 export interface UserInfo {
@@ -77,4 +82,15 @@ export interface Field {
 export interface FieldMapEditorProps {
     initialBoundaryJson: string | null;
     onSaveBoundary: (boundaryJson: string) => void;
+}
+
+
+export interface StorageItem {
+    id: number;
+    storageType: number;
+    cropType: number;
+    quantityInKg: number;
+    lastUpdated: string;
+    germinationRate?: number | null;
+    averageMoisture?: number | null;
 }

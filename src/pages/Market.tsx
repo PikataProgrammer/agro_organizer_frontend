@@ -20,7 +20,7 @@ const Market = () => {
                         <div>
                             <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Пшеница</p>
                             <h2 style={{ margin: '10px 0 0 0', color: '#EAB308', fontSize: '2.5rem' }}>
-                                {marketData?.wheat > 0 ? marketData.wheat : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/т</span>
+                                {marketData?.wheat > 0 ? (marketData.wheat / 1000).toFixed(2) : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/kg</span>
                             </h2>
                         </div>
                         <div style={{ backgroundColor: '#FEF08A', padding: '15px', borderRadius: '50%' }}>
@@ -35,7 +35,7 @@ const Market = () => {
                         <div>
                             <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Царевица</p>
                             <h2 style={{ margin: '10px 0 0 0', color: '#F97316', fontSize: '2.5rem' }}>
-                                {marketData?.corn > 0 ? marketData.corn : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/т</span>
+                                {marketData?.corn > 0 ? (marketData.corn / 1000).toFixed(2) : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/kg</span>
                             </h2>
                         </div>
                         <div style={{ backgroundColor: '#FFEDD5', padding: '15px', borderRadius: '50%' }}>
@@ -50,7 +50,7 @@ const Market = () => {
                         <div>
                             <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Слънчоглед</p>
                             <h2 style={{ margin: '10px 0 0 0', color: '#14B8A6', fontSize: '2.5rem' }}>
-                                {marketData?.sunflower > 0 ? marketData.sunflower : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/т</span>
+                                {marketData?.sunflower > 0 ? (marketData.sunflower / 1000).toFixed(2) : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/kg</span>
                             </h2>
                         </div>
                         <div style={{ backgroundColor: '#CCFBF1', padding: '15px', borderRadius: '50%' }}>
@@ -65,7 +65,7 @@ const Market = () => {
                         <div>
                             <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Ечемик</p>
                             <h2 style={{ margin: '10px 0 0 0', color: '#8B5CF6', fontSize: '2.5rem' }}>
-                                {marketData?.barley > 0 ? marketData.barley : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/т</span>
+                                {marketData?.barley > 0 ? (marketData.barley / 1000).toFixed(2) : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/kg</span>
                             </h2>
                         </div>
                         <div style={{ backgroundColor: '#EDE9FE', padding: '15px', borderRadius: '50%' }}>
@@ -79,7 +79,7 @@ const Market = () => {
                         <div>
                             <p style={{ margin: 0, color: '#666', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>Рапица</p>
                             <h2 style={{ margin: '10px 0 0 0', color: '#F43F5E', fontSize: '2.5rem' }}>
-                                {marketData?.rapeseed > 0 ? marketData.rapeseed : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/т</span>
+                                {marketData?.rapeseed > 0 ? (marketData.rapeseed / 1000).toFixed(2) : '...'} <span style={{fontSize: '1rem', color: '#888'}}>EUR/kg</span>
                             </h2>
                         </div>
                         <div style={{ backgroundColor: '#FFE4E6', padding: '15px', borderRadius: '50%' }}>

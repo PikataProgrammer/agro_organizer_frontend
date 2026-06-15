@@ -201,7 +201,7 @@ const VehicleDetails = () => {
                     </div>
                 </Card>
 
-                <Card title="Сервизна История / Ремонти" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <Card title="Сервизна история / Ремонти" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
                         <Button label="Нов Ремонт" icon="pi pi-wrench" className="p-button-warning" onClick={() => setShowDialog(true)} />
                     </div>

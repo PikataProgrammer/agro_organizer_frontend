@@ -31,14 +31,15 @@ const Dashboard = () => {
     const cropFilterOptions = [
         { label: 'Пшеница', value: 1 },
         { label: 'Ръж', value: 2 },
-        { label: 'Грах', value: 3 },
+        { label: 'Зелен грах', value: 3 },
         { label: 'Фацелия', value: 4 },
         { label: 'Слънчоглед', value: 5 },
         { label: 'Царевица', value: 6 },
         { label: 'Угар', value: 7 },
         { label: 'Люцерна', value: 8 },
-        { label: 'Изкуствени ливади', value: 9 },
+        { label: 'Изкуствени ливади - смесени насаждения', value: 9 },
         { label: 'Мека пшеница-зимна', value: 10 },
+        { label: "Грах за зърно - пролетен", value: 11 },
     ]
 
     const [newField, setNewField] = useState({
@@ -51,8 +52,8 @@ const Dashboard = () => {
     const [editingField, setEditingField] = useState<Field | null>(null);
 
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
-            8: 'Люцерна', 9: 'Изкуствени ливади', 10: "Мека пшеница - зимна" };
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Зелен грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
+            8: 'Люцерна', 9: 'Изкуствени ливади - смесени насаждения', 10: "Мека пшеница - зимна", 11: "Грах за зърно - пролетен" };
         return crops[crop] || 'Неизвестно';
     };
 
@@ -287,7 +288,7 @@ const Dashboard = () => {
                 </Card>
 
                 <Card title="Списък с ниви" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                    <DataTable value={filteredFields} stripedRows paginator rows={5} emptyMessage="Няма намерени ниви.">
+                    <DataTable value={filteredFields} stripedRows paginator rows={5} emptyMessage="Няма намерени ниви." stateStorage="session" stateKey="fields-table-state">
                         <Column field = "fieldNumber" header="КБС"/>
                         <Column field="fieldName" header="Име на нива" style={{ fontWeight: 'bold' }}></Column>
                         <Column field="fieldSize" header="Хектари" body={(r) => r.fieldSize ? `${r.fieldSize} ха` : '-'}></Column>

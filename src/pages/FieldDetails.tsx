@@ -43,6 +43,7 @@ const FieldDetails = () => {
         driverId: null as number | null,
         notes: ''
     });
+    const [isEditingSeason, setIsEditingSeason] = useState(false);
 
     useEffect(() => {
         if (field && field.seasons && field.seasons.length > 0) {
@@ -62,8 +63,8 @@ const FieldDetails = () => {
     const formatDate = (value: string) => value ? new Date(value).toLocaleDateString('bg-BG') : '-';
 
     const getCropName = (crop: CropTypes) => {
-        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
-            8: 'Люцерна', 9: 'Изкуствени ливади', 10: "Мека пшеница - зимна"};
+        const crops: Record<number, string> = { 1: 'Пшеница', 2: 'Ръж', 3: 'Зелен грах', 4: 'Фацелия', 5: 'Слънчоглед', 6: 'Царевица', 7: 'Угар',
+            8: 'Люцерна', 9: 'Изкуствени ливади - смесени насаждения', 10: "Мека пшеница - зимна", 11: "Грах за зърно - пролетен"};
         return crops[crop] || 'Неизвестно';
     };
 
@@ -75,14 +76,15 @@ const FieldDetails = () => {
     const cropOptions = [
         { label: 'Пшеница', value: 1 },
         { label: 'Ръж', value: 2 },
-        { label: 'Грах', value: 3 },
+        { label: 'Зелен грах', value: 3 },
         { label: 'Фацелия', value: 4 },
         { label: 'Слънчоглед', value: 5 },
         { label: 'Царевица', value: 6 },
         { label: 'Угар', value: 7 },
         { label: 'Люцерна', value: 8 },
-        { label: 'Изкуствени ливади', value: 9 },
+        { label: 'Изкуствени ливади - смесени насаждения', value: 9 },
         { label: 'Мека пшеница-зимна', value: 10 },
+        { label: "Грах за зърно - пролетен", value: 11 },
     ];
 
     const operationOptions = [
@@ -102,6 +104,15 @@ const FieldDetails = () => {
             toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно запазване.' });
         }
     };
+    const openEditSeasonDialog = () => {
+        if(!selectedSeason) return;
+        setNewSeason({
+            year: selectedSeason.year,
+            cropType: selectedSeason.cropType,
+        });
+        setIsEditingSeason(true);
+        setShowSeasonDialog(true);
+    }
     const handleCreateSeason = async () => {
         if (!newSeason.year || !newSeason.cropType) {
             toast.current?.show({ severity: 'warn', summary: 'Внимание', detail: 'Моля, попълнете всички полета!' });
@@ -109,14 +120,36 @@ const FieldDetails = () => {
         }
         setSavingSeason(true);
         try {
-            await api.post('/api/fieldseason', { fieldId: Number(id), year: newSeason.year, cropType: newSeason.cropType });
-            toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Новият сезон е създаден!' });
+            if(isEditingSeason && selectedSeason){
+                await api.put(`/api/fieldseason/${selectedSeason.id}`, {
+                    id: selectedSeason.id,
+                    fieldId: Number(id),
+                    year: newSeason.year,
+                    cropType: newSeason.cropType
+                });
+                toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Сезонът беше редактиран успешно!' });
+            }
+            else {
+                await api.post('/api/fieldseason', {
+                    fieldId: Number(id),
+                    year: newSeason.year,
+                    cropType: newSeason.cropType
+                });
+                toast.current?.show({ severity: 'success', summary: 'Успех', detail: 'Новият сезон е създаден!' });
+            }
+
             setShowSeasonDialog(false);
-            setSelectedSeason(null);
+            if(!isEditingSeason){
+                setSelectedSeason(false);
+            }
             await mutate();
         } catch (err) {
             console.error(err);
-            toast.current?.show({ severity: 'error', summary: 'Грешка', detail: 'Неуспешно създаване на сезон.' });
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Грешка',
+                detail: isEditingSeason ? 'Неуспешна редакция на сезона.' : 'Неуспешно създаване на сезон.'
+            });
         } finally {
             setSavingSeason(false);
         }
@@ -155,6 +188,9 @@ const FieldDetails = () => {
         }
         return '-';
     };
+
+
+
 
     if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}><ProgressSpinner /></div>;
     if (error || !field) return <h2 style={{ color: 'red', textAlign: 'center' }}>Грешка!</h2>;
@@ -210,17 +246,29 @@ const FieldDetails = () => {
                         style={{ width: '250px' }}
                         emptyMessage="Няма сезони"
                     />
-                    <Button icon="pi pi-plus" tooltip="Нов Сезон" className="p-button-success p-button-outlined"
-                            onClick={() => setShowSeasonDialog(true)} />
+                    <Button
+                        icon="pi pi-plus"
+                        tooltip="Нов Сезон"
+                        className="p-button-success p-button-outlined"
+                        onClick={() => { setIsEditingSeason(false); setNewSeason({ year: new Date().getFullYear(), cropType: 1 }); setShowSeasonDialog(true); }}
+                    />
                     {selectedSeason && (
-                        <Button
-                            icon="pi pi-trash"
-                            tooltip="Изтрий текущия сезон"
-                            className="p-button-danger p-button-outlined"
-                            onClick={handleDeleteSeason}
-                        />
+                        <>
+                            <Button
+                                icon="pi pi-pencil"
+                                tooltip="Редактирай текущия сезон"
+                                className="p-button-warning p-button-outlined"
+                                onClick={openEditSeasonDialog}
+                            />
+                            <Button
+                                icon="pi pi-trash"
+                                tooltip="Изтрий текущия сезон"
+                                className="p-button-danger p-button-outlined"
+                                onClick={handleDeleteSeason}
+                            />
+                        </>
                     )}
-                </div>
+                    </div>
             </div>
 
             {!selectedSeason ? (
