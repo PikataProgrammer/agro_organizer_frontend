@@ -10,6 +10,8 @@ export enum CropTypes {
     Lawns = 9,
     Wheat_winter = 10,
     Peas_spring = 11,
+    MeadowForMowing = 12,
+    FodderPea = 13,
 }
 
 export enum FieldOperationTypes {
